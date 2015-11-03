@@ -1,5 +1,5 @@
 from commands.command_handler import CommandContext, CommandHandler
-from commands.util_commands import CommandRoll, CommandHold
+from commands.misc_commands import CommandRoll
 from discord.client import DiscordClient
 
 
@@ -8,8 +8,6 @@ class DiscordBot(DiscordClient):
         super().__init__(email, password)
         self.command_handler = CommandHandler()
         self.register_command(["roll"], CommandRoll())
-        self.register_command(["hold"], CommandHold())
-
         self.plugins = []
 
     def register_command(self, labels, command):
