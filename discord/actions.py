@@ -2,13 +2,14 @@ import http.client
 import json
 import threading
 import re
+from urllib.parse import quote
 
 DISCORD_HOST = "discordapp.com"
 MENTION_TEMPLATE = re.compile(r"(<@[0-9]+>)")
 
 
 class AsyncRequest(threading.Thread):
-    def __init__(self, request_type, headers, json_body, url, host=DISCORD_HOST, callback=None):
+    def __init__(self, request_type, headers, json_body, url, url_params=None, host=DISCORD_HOST, callback=None):
         threading.Thread.__init__(self)
         self.request_type = request_type
         self.headers = headers
@@ -17,17 +18,28 @@ class AsyncRequest(threading.Thread):
         self.url = url
         self.callback = callback
 
+        if url_params is not None and len(url_params) > 0:
+            self.url += "?"
+            for key, value in url_params.items():
+                self.url += key + "=" + quote(value) + "&"
+            self.url = self.url[:-1]
+
+        if self.headers is None:
+            self.headers = {}
+
     def run(self):
         conn = http.client.HTTPConnection(self.host, port=80)
         conn.request(self.request_type, self.url, body=self.json_body, headers=self.headers)
         response = conn.getresponse()
-        print(response.read().decode("UTF-8"))
+        # print(response.read().decode("UTF-8"))
         if self.callback:
             self.callback.on_response(response)
+        else:
+            return response  # in case it's ran in sync with main thread
 
 
 class Response:
-    def on_response(self):
+    def on_response(self, response):
         pass
 
 
